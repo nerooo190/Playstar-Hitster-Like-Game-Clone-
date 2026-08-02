@@ -46,46 +46,46 @@ export const LANGUAGES = [
 export const TRANSLATIONS = {
   de: {
     appTitle: "HITSTER",
-    appSubtitle: "Das Musik-Karten Spiel (1900 – 2026)",
-    playNow: "Jetzt Spielen",
+    appSubtitle: "Das Musik-Kartenspiel (1900 – 2026)",
+    playNow: "Jetzt spielen",
     gameModes: "Spielmodi",
     rules: "Spielregeln & Anleitung",
-    colorCustomizer: "Farben Customizer (180M Farben)",
+    colorCustomizer: "Design anpassen (180M Farben)",
     highscores: "Highscores & Statistiken",
-    localMultiplayer: "Lokaler Multiplayer (Pass & Play)",
-    onlineMultiplayer: "Online Lobby (Host / Join)",
+    localMultiplayer: "Lokal spielen (Pass & Play)",
+    onlineMultiplayer: "Online spielen (Raum erstellen / beitreten)",
     selectLanguage: "Sprache wählen",
-    modeClassic: "Classic (Original Hitster)",
-    modePro: "Pro Mode (Keine Tipps)",
-    modeExpert: "Expert Mode (Genaue Jahreszahl)",
+    modeClassic: "Klassischer Modus (Original Hitster)",
+    modePro: "Profi-Modus (Keine Tipps)",
+    modeExpert: "Experten-Modus (Genaue Jahreszahl)",
     modeCoop: "Kooperativ (Teamwork)",
-    modeSolo: "Solo Challenge",
+    modeSolo: "Einzelspieler-Herausforderung",
     playersCount: "Anzahl Spieler / Teams",
-    startRound: "Spiel Starten",
+    startRound: "Spiel starten",
     currentTurn: "Am Zug:",
-    playSong: "Song Abspielen",
+    playSong: "Song abspielen",
     pauseSong: "Pause",
     placeInTimeline: "Auf dem Zeitstrahl platzieren",
-    revealCard: "Karte Aufdecken",
+    revealCard: "Karte aufdecken",
     correctGuess: "Richtig! Die Karte ist am korrekten Platz!",
     wrongGuess: "Falsch! Die Karte passt hier nicht hin.",
     hitsterTokens: "Hitster-Chips:",
     useTokenSteal: "Chip setzen: Stehlen",
-    useTokenSkip: "Song Überspringen",
-    useTokenBuy: "Karte Kaufen (3 Chips)",
-    openInSpotify: "In Spotify Öffnen",
+    useTokenSkip: "Song überspringen",
+    useTokenBuy: "Karte kaufen (3 Chips)",
+    openInSpotify: "In Spotify öffnen",
     backToMenu: "Hauptmenü",
     themePresets: "Theme-Vorlagen",
     presetOriginal: "Hitster Original (Rot & Blau)",
     presetCyberpunk: "Cyberpunk Synthwave",
-    presetMidnight: "Midnight Gold",
-    presetEmerald: "Emerald Disco",
+    presetMidnight: "Mitternachts-Gold",
+    presetEmerald: "Smaragd-Disko",
     primaryColor: "Hauptfarbe",
     accentColor: "Akzentfarbe (Rot)",
-    cyanColor: "Neon Cyan",
-    goldColor: "Gold Akzent",
-    bgPrimary: "Hintergrund Dunkel",
-    saveColors: "Farben Speichern"
+    cyanColor: "Neon-Cyan",
+    goldColor: "Gold-Akzent",
+    bgPrimary: "Hintergrund dunkel",
+    saveColors: "Farben speichern"
   },
   en: {
     appTitle: "HITSTER",
@@ -129,100 +129,22 @@ export const TRANSLATIONS = {
     goldColor: "Gold Accent",
     bgPrimary: "Dark Background",
     saveColors: "Save Custom Colors"
-  },
-  es: {
-    appTitle: "HITSTER",
-    appSubtitle: "El Juego de Cartas Musicales (1900 – 2026)",
-    playNow: "Jugar Ahora",
-    gameModes: "Modos de Juego",
-    rules: "Reglas del Juego",
-    colorCustomizer: "Personalizador de Color (180M)",
-    highscores: "Puntuaciones",
-    localMultiplayer: "Multijugador Local",
-    onlineMultiplayer: "Sala Online",
-    selectLanguage: "Seleccionar Idioma",
-    modeClassic: "Clásico Original",
-    modePro: "Modo Pro",
-    modeExpert: "Modo Experto",
-    modeCoop: "Cooperativo",
-    modeSolo: "Desafío Solo",
-    playersCount: "Número de Jugadores",
-    startRound: "Iniciar Juego",
-    currentTurn: "Turno De:",
-    playSong: "Reproducir Canción",
-    pauseSong: "Pausar",
-    placeInTimeline: "Colocar en Línea de Tiempo",
-    revealCard: "Revelar Carta",
-    correctGuess: "¡Correcto! Ubicación exacta.",
-    wrongGuess: "¡Incorrecto!",
-    hitsterTokens: "Fichas Hitster:",
-    useTokenSteal: "Robar Carta",
-    useTokenSkip: "Saltar Canción",
-    useTokenBuy: "Comprar Carta",
-    openInSpotify: "Abrir en Spotify",
-    backToMenu: "Menú Principal",
-    themePresets: "Temas Predefinidos",
-    primaryColor: "Color Principal",
-    saveColors: "Guardar Colores"
-  },
-  fr: {
-    appTitle: "HITSTER",
-    appSubtitle: "Le Jeu de Cartes Musical (1900 – 2026)",
-    playNow: "Jouer Maintenant",
-    gameModes: "Modes de Jeu",
-    rules: "Règles du Jeu",
-    colorCustomizer: "Personnaliser les Couleurs",
-    highscores: "Meilleurs Scores",
-    localMultiplayer: "Multijoueur Local",
-    onlineMultiplayer: "Lobby En Ligne",
-    selectLanguage: "Choisir la Langue",
-    modeClassic: "Classique",
-    modePro: "Mode Pro",
-    modeExpert: "Mode Expert",
-    modeCoop: "Coopératif",
-    modeSolo: "Défi Solo",
-    playersCount: "Nombre de Joueurs",
-    startRound: "Lancer la Partie",
-    currentTurn: "Tour de :",
-    playSong: "Écouter la Musique",
-    pauseSong: "Pause",
-    placeInTimeline: "Placer sur la Frise",
-    revealCard: "Révéler la Carte",
-    correctGuess: "Correct ! Emplacement parfait.",
-    wrongGuess: "Faux ! Mauvais emplacement.",
-    hitsterTokens: "Jetons Hitster :",
-    useTokenSteal: "Voler une Carte",
-    useTokenSkip: "Passer le Morceau",
-    useTokenBuy: "Acheter une Carte",
-    openInSpotify: "Ouvrir sur Spotify",
-    backToMenu: "Menu Principal",
-    saveColors: "Enregistrer les Couleurs"
   }
 };
 
-let currentLang = 'de';
+let currentLanguage = 'de';
 
-export function getTranslation(key) {
-  if (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) {
-    return TRANSLATIONS[currentLang][key];
-  }
-  if (TRANSLATIONS.en && TRANSLATIONS.en[key]) {
-    return TRANSLATIONS.en[key];
-  }
-  return TRANSLATIONS.de[key] || key;
+export function getCurrentLanguage() {
+  return currentLanguage;
 }
 
 export function setLanguage(langCode) {
-  currentLang = langCode;
-  localStorage.setItem('hitster_lang', langCode);
+  if (TRANSLATIONS[langCode] || LANGUAGES.find(l => l.code === langCode)) {
+    currentLanguage = langCode;
+  }
 }
 
-export function getCurrentLanguage() {
-  return currentLang;
-}
-
-// Load saved language on init
-const savedLang = localStorage.getItem('hitster_lang');
-if (savedLang) {
-  currentLang = savedLang;
+export function getTranslation(key) {
+  const langObj = TRANSLATIONS[currentLanguage] || TRANSLATIONS['de'];
+  return langObj[key] || TRANSLATIONS['de'][key] || TRANSLATIONS['en'][key] || key;
 }

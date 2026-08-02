@@ -1,77 +1,57 @@
-// NewPipe Extractor Engine (JavaScript Web Port)
-// Fetches high quality audio stream URLs from YouTube / YouTube Music APIs (same backend as NewPipeExtractor)
+// Hybrid Audio Stream Extractor for Vercel.com Static Hosting & Local Server
+// Resolves high-quality audio streams using CORS-friendly iTunes API & mirror endpoints
 
-const PIPED_APIS = [
-  'https://pipedapi.kavin.rocks',
-  'https://api.piped.video',
-  'https://pipedapi.privacy.com.de',
-  'https://piped-api.garudalinux.org'
-];
-
-const INVIDIOUS_APIS = [
-  'https://invidious.nerdvpn.de',
-  'https://inv.tux.pizza',
-  'https://invidious.drgns.space'
-];
-
-// Cache extracted audio stream URLs in memory
 const streamCache = new Map();
 
-export async function fetchAudioStream(artist, title, fallbackUrl = '') {
+export async function fetchAudioStream(artist, title, defaultUrl = '') {
   const queryKey = `${artist} - ${title}`.toLowerCase();
   
   if (streamCache.has(queryKey)) {
     return streamCache.get(queryKey);
   }
 
-  // 1. Try Piped API (NewPipe Extractor Backend)
-  for (const baseUrl of PIPED_APIS) {
+  // 1. Primary: iTunes Public Search API (100% CORS-friendly on Vercel & All Browsers)
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist + ' ' + title)}&media=music&limit=1`, {
+      signal: AbortSignal.timeout(3500)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.results && data.results.length > 0 && data.results[0].previewUrl) {
+        const streamUrl = data.results[0].previewUrl;
+        streamCache.set(queryKey, streamUrl);
+        return streamUrl;
+      }
+    }
+  } catch (e) {
+    console.warn("iTunes API query skipped", e);
+  }
+
+  // 2. Secondary: Piped / Invidious Extractor Mirrors
+  const mirrors = [
+    'https://pipedapi.kavin.rocks',
+    'https://api.piped.video',
+    'https://invidious.nerdvpn.de'
+  ];
+
+  for (const baseUrl of mirrors) {
     try {
       const searchRes = await fetch(`${baseUrl}/search?q=${encodeURIComponent(artist + ' ' + title)}&filter=music_songs`, {
         signal: AbortSignal.timeout(3000)
       });
       if (searchRes.ok) {
         const searchData = await searchRes.json();
-        if (searchData.items && searchData.items.length > 0) {
-          const videoId = searchData.items[0].url.replace('/watch?v=', '');
-          const streamRes = await fetch(`${baseUrl}/streams/${videoId}`, { signal: AbortSignal.timeout(3000) });
-          if (streamRes.ok) {
-            const streamData = await streamRes.json();
-            const audioStreams = streamData.audioStreams;
-            if (audioStreams && audioStreams.length > 0) {
-              // Pick highest bitrate audio stream
-              audioStreams.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-              const streamUrl = audioStreams[0].url;
-              streamCache.set(queryKey, streamUrl);
-              return streamUrl;
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`Piped API (${baseUrl}) failed, trying next mirror...`, e);
-    }
-  }
-
-  // 2. Fallback to Invidious API
-  for (const baseUrl of INVIDIOUS_APIS) {
-    try {
-      const searchRes = await fetch(`${baseUrl}/api/v1/search?q=${encodeURIComponent(artist + ' ' + title)}&type=video`, {
-        signal: AbortSignal.timeout(3000)
-      });
-      if (searchRes.ok) {
-        const items = await searchRes.json();
+        const items = searchData.items || searchData;
         if (items && items.length > 0) {
-          const videoId = items[0].videoId;
-          const videoRes = await fetch(`${baseUrl}/api/v1/videos/${videoId}`, { signal: AbortSignal.timeout(3000) });
-          if (videoRes.ok) {
-            const videoData = await videoRes.json();
-            const adaptiveFormats = videoData.adaptiveFormats;
-            if (adaptiveFormats) {
-              const audioFormats = adaptiveFormats.filter(f => f.type && f.type.startsWith('audio/'));
-              if (audioFormats.length > 0) {
-                audioFormats.sort((a, b) => parseInt(b.bitrate || 0) - parseInt(a.bitrate || 0));
-                const streamUrl = audioFormats[0].url;
+          const videoId = items[0].url ? items[0].url.replace('/watch?v=', '') : (items[0].videoId || items[0].id);
+          if (videoId) {
+            const streamRes = await fetch(`${baseUrl}/streams/${videoId}`, { signal: AbortSignal.timeout(3000) });
+            if (streamRes.ok) {
+              const streamData = await streamRes.json();
+              const audioStreams = streamData.audioStreams;
+              if (audioStreams && audioStreams.length > 0) {
+                audioStreams.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+                const streamUrl = audioStreams[0].url;
                 streamCache.set(queryKey, streamUrl);
                 return streamUrl;
               }
@@ -80,10 +60,9 @@ export async function fetchAudioStream(artist, title, fallbackUrl = '') {
         }
       }
     } catch (e) {
-      console.warn(`Invidious API (${baseUrl}) failed...`, e);
+      // try next mirror
     }
   }
 
-  // 3. Ultimate Fallback to provided iTunes preview stream URL
-  return fallbackUrl;
+  return defaultUrl;
 }

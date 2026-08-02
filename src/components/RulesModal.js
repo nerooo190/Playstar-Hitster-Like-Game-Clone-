@@ -1,4 +1,5 @@
 // Hitster Rules & How-To-Play Guide Modal Component
+// Desktop 2-Column Sidebar Layout (700px-850px) with Interactive Table of Contents & Mobile Full-Width Support
 
 import { getTranslation } from '../data/i18n.js';
 
@@ -7,52 +8,106 @@ export function renderRulesModal(onClose) {
   overlay.className = 'modal-overlay';
 
   overlay.innerHTML = `
-    <div class="modal-content">
+    <div class="modal-content rules-modal-large">
       <button class="modal-close-btn" id="close-rules-btn">✕</button>
-      
-      <div style="text-align:center; margin-bottom:20px;">
-        <span style="font-size:2.5rem;">🎵</span>
-        <h2 style="font-family:var(--font-heading); font-size:2rem; font-weight:900; background:linear-gradient(90deg, #fff, var(--accent-red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-top:8px;">
-          ${getTranslation('rules')}
+
+      <!-- Modal Header -->
+      <div style="text-align:center; padding-bottom:12px; border-bottom:1px solid var(--border-color);">
+        <h2 style="font-family:var(--font-heading); font-size:1.8rem; font-weight:900; background:linear-gradient(90deg, #fff, var(--accent-red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+          📖 Spielanleitung & Regelwerk
         </h2>
-        <p style="color:var(--text-muted); font-size:0.9rem;">Das ultimative Party-Musikspiel von 1900 bis 2026</p>
+        <p style="color:var(--text-muted); font-size:0.88rem; margin-top:2px;">
+          Das ultimative Party-Musikspiel von 1900 bis 2026
+        </p>
       </div>
 
-      <div style="display:flex; flex-direction:column; gap:18px; color:#cbd5e1; font-size:0.95rem; line-height:1.6;">
-        <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:14px; border:1px solid var(--border-color);">
-          <h3 style="color:#fff; font-family:var(--font-heading); font-size:1.1rem; font-weight:700; margin-bottom:6px;">🎯 Ziel des Spiels</h3>
-          <p>Sei der erste Spieler oder das erste Team, das <strong>10 Musikkarten</strong> in der korrekten chronologischen Reihenfolge (von 1900 bis 2026) auf dem eigenen Zeitstrahl platziert!</p>
-        </div>
+      <!-- 2-Column Body: Left Sidebar (TOC) + Right Main Content -->
+      <div class="rules-body-grid">
+        <!-- Left Sidebar: Inhaltsverzeichnis -->
+        <nav class="rules-toc-sidebar">
+          <div class="rules-toc-title">Inhaltsverzeichnis</div>
+          <button class="rules-toc-item active" data-target="ch-1">🎯 1. Spielziel</button>
+          <button class="rules-toc-item" data-target="ch-2">🎧 2. Spielablauf</button>
+          <button class="rules-toc-item" data-target="ch-3">🪙 3. Hitster-Chips</button>
+          <button class="rules-toc-item" data-target="ch-4">⚡ 4. Spielmodi</button>
+          <button class="rules-toc-item" data-target="ch-5">🤖 5. KI & Multiplayer</button>
+        </nav>
 
-        <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:14px; border:1px solid var(--border-color);">
-          <h3 style="color:#fff; font-family:var(--font-heading); font-size:1.1rem; font-weight:700; margin-bottom:6px;">🎧 Spielablauf</h3>
-          <ol style="margin-left:20px; display:flex; flex-direction:column; gap:6px;">
-            <li>Spiele die Musikkarte ab (ohne den Titel oder das Jahr zu sehen).</li>
-            <li>Rate, wo der Song in deine bisherige Timeline passt (vor, zwischen oder nach deinen bereits gelegten Karten).</li>
-            <li>Klicke auf den gewünschten Slot im Zeitstrahl.</li>
-            <li>Decke die Karte auf: Liegt sie richtig, gehört sie dir! Liegt sie falsch, kommt sie auf den Ablagestapel.</li>
-          </ol>
-        </div>
+        <!-- Right Content Area -->
+        <div class="rules-content-scroll" id="rules-scroll-area">
+          <!-- Chapter 1: Ziel des Spiels -->
+          <section class="rules-chapter-card" id="ch-1">
+            <div class="rules-chapter-header">
+              <span class="rules-chapter-icon">🎯</span>
+              <h3 class="rules-chapter-title">1. Ziel des Spiels</h3>
+            </div>
+            <p style="color:#cbd5e1; font-size:0.92rem; line-height:1.6;">
+              Sei der erste Spieler oder das erste Team, das <strong>10 Musikkarten</strong> in der korrekten chronologischen Reihenfolge (von 1900 bis 2026) auf dem eigenen Zeitstrahl platziert!
+            </p>
+            <div style="background:rgba(255,215,0,0.1); border:1px solid var(--accent-gold); padding:10px 14px; border-radius:12px; font-size:0.85rem; color:var(--accent-gold); font-weight:700;">
+              💡 Tipp: Es zählt nur das originale Erscheinungsjahr des Songs, nicht spätere Covers oder Remaster!
+            </div>
+          </section>
 
-        <div style="background:rgba(255,43,85,0.1); padding:16px; border-radius:14px; border:1px solid var(--accent-red);">
-          <h3 style="color:var(--accent-red); font-family:var(--font-heading); font-size:1.1rem; font-weight:800; margin-bottom:6px;">🪙 Hitster-Chips (Tokens)</h3>
-          <ul style="margin-left:20px; display:flex; flex-direction:column; gap:6px;">
-            <li><strong>STEAL / STEHLEN:</strong> Setze deinen Chip auf den Zeitstrahl deines Mitspielers, wenn du glaubst, dass seine Karte falsch liegt. Liegt sie falsch und du richtig, stiehlst du die Karte!</li>
-            <li><strong>SKIP / ÜBERSPRINGEN:</strong> Tausche 1 Chip ein, um einen Song zu überspringen.</li>
-            <li><strong>BUY / KAUFEN:</strong> Löse 3 Hitster-Chips ein, um sofort 1 Karte ohne Raten zu deiner Timeline hinzuzufügen.</li>
-          </ul>
-        </div>
+          <!-- Chapter 2: Spielablauf -->
+          <section class="rules-chapter-card" id="ch-2">
+            <div class="rules-chapter-header">
+              <span class="rules-chapter-icon">🎧</span>
+              <h3 class="rules-chapter-title">2. Spielablauf & Kartenlegen</h3>
+            </div>
+            <ol style="margin-left:20px; color:#cbd5e1; font-size:0.9rem; line-height:1.7; display:flex; flex-direction:column; gap:6px;">
+              <li><strong>Probe abspielen:</strong> Klicke auf den Play-Button, um eine 30-Sekunden Musikprobe zu hören.</li>
+              <li><strong>Position wählen:</strong> Ziehe die Karte per <strong>Drag & Drop</strong> nach unten ODER klicke auf einen freien Slot (<code>➕ Hier</code>) in deiner Timeline.</li>
+              <li><strong>Auflösung:</strong> Nach dem Einrasten dreht sich die Karte um: Liegt sie richtig, wächst deine Timeline! Liegt sie falsch, wandert sie auf den Ablagestapel.</li>
+            </ol>
+          </section>
 
-        <div style="background:rgba(255,215,0,0.1); padding:16px; border-radius:14px; border:1px solid var(--accent-gold);">
-          <h3 style="color:var(--accent-gold); font-family:var(--font-heading); font-size:1.1rem; font-weight:800; margin-bottom:6px;">⚡ Spielmodi</h3>
-          <p><strong>Classic:</strong> Erhalte Chips für richtige Antworten.<br>
-          <strong>Pro:</strong> Kein Raten mit Vergleichen – Karten müssen exakt platziert werden.<br>
-          <strong>Expert:</strong> Errate zusätzlich den exakten Künstlernamen & das Jahr für Bonuspunkte!</p>
+          <!-- Chapter 3: Hitster-Chips (Tokens) -->
+          <section class="rules-chapter-card" id="ch-3" style="border-color:var(--accent-red);">
+            <div class="rules-chapter-header">
+              <span class="rules-chapter-icon">🪙</span>
+              <h3 class="rules-chapter-title" style="color:var(--accent-red);">3. Hitster-Chips (Tokens) & Power-Ups</h3>
+            </div>
+            <ul style="margin-left:20px; color:#cbd5e1; font-size:0.9rem; line-height:1.7; display:flex; flex-direction:column; gap:6px;">
+              <li><strong>⏭ SKIP / ÜBERSPRINGEN (1 Token):</strong> Passt dir der aktuelle Song nicht? Tausche 1 Token ein, um sofort eine neue Karte zu ziehen.</li>
+              <li><strong>🎁 BUY / KAUFEN (3 Tokens):</strong> Löse 3 Hitster-Chips ein, um sofort 1 Karte ohne Raten direkt auf deine Timeline geschenkt zu bekommen!</li>
+              <li><strong>🎯 EXAKTES JAHR BONUS (+2 Tokens):</strong> Errätst du im Expert-Modus das exakte Erscheinungsjahr, erhältst du 2 Extra-Tokens als Belohnung.</li>
+            </ul>
+          </section>
+
+          <!-- Chapter 4: Spielmodi -->
+          <section class="rules-chapter-card" id="ch-4">
+            <div class="rules-chapter-header">
+              <span class="rules-chapter-icon">⚡</span>
+              <h3 class="rules-chapter-title">4. Die 4 Spielmodi</h3>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; color:#cbd5e1; font-size:0.88rem;">
+              <div><strong style="color:var(--accent-gold);">Classic:</strong> Standard Hitster-Erlebnis. Wer zuerst 10 Karten hat, gewinnt.</div>
+              <div><strong style="color:var(--accent-cyan);">Pro:</strong> Erhöhte Herausforderung – Fehlplatzierungen kosten Hitster-Tokens!</div>
+              <div><strong style="color:var(--accent-red);">Expert:</strong> Für echte Musik-Gurus! Gebe zusätzlich das exakte Erscheinungsjahr ein für Bonuspunkte.</div>
+              <div><strong style="color:#22c55e;">Coop:</strong> Team-Modus! Alle spielen gemeinsam gegen die Uhr mit 3 gemeinsamen Leben.</div>
+            </div>
+          </section>
+
+          <!-- Chapter 5: KI & Multiplayer -->
+          <section class="rules-chapter-card" id="ch-5">
+            <div class="rules-chapter-header">
+              <span class="rules-chapter-icon">🤖</span>
+              <h3 class="rules-chapter-title">5. KI-Bots & Online Multiplayer</h3>
+            </div>
+            <p style="color:#cbd5e1; font-size:0.9rem; line-height:1.6;">
+              <strong>KI-Bots:</strong> Du kannst alleine gegen intelligene Bots (Easy, Medium, Hard, Unbeatable) spielen.<br>
+              <strong>Online Multiplayer:</strong> Erstelle eine Online-Lobby, teile den 6-stelligen Raumcode mit Freunden und spielt gemeinsam über verschiedene Geräte!
+            </p>
+          </section>
         </div>
       </div>
 
-      <div style="margin-top:24px; text-align:center;">
-        <button class="btn-primary" id="start-rules-btn" style="width:100%;">Alles Klar, Los Geht's!</button>
+      <!-- Fixed Bottom Action Bar -->
+      <div class="rules-footer-bar">
+        <button class="btn-primary" id="start-rules-btn" style="min-width:240px; padding:14px 32px; font-size:1.05rem;">
+          ✅ Verstanden
+        </button>
       </div>
     </div>
   `;
@@ -61,6 +116,25 @@ export function renderRulesModal(onClose) {
 
   const closeBtn = overlay.querySelector('#close-rules-btn');
   const startBtn = overlay.querySelector('#start-rules-btn');
+  const tocItems = overlay.querySelectorAll('.rules-toc-item');
+  const scrollArea = overlay.querySelector('#rules-scroll-area');
+
+  // Sidebar navigation smooth scroll
+  tocItems.forEach(item => {
+    item.addEventListener('click', () => {
+      tocItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      const targetId = item.getAttribute('data-target');
+      const targetEl = overlay.querySelector(`#${targetId}`);
+      if (targetEl && scrollArea) {
+        scrollArea.scrollTo({
+          top: targetEl.offsetTop - scrollArea.offsetTop - 10,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
 
   const close = () => {
     overlay.remove();

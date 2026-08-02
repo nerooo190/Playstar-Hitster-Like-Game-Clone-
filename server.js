@@ -71,11 +71,13 @@ const server = http.createServer(async (req, res) => {
       code: roomCode,
       players: [hostPlayer],
       started: false,
+      mode: 'classic',
+      isPrivate: true,
       createdAt: Date.now()
     });
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ code: roomCode, players: [hostPlayer], player: hostPlayer }));
+    res.end(JSON.stringify({ code: roomCode, players: [hostPlayer], player: hostPlayer, mode: 'classic' }));
     return;
   }
 
@@ -95,7 +97,25 @@ const server = http.createServer(async (req, res) => {
     room.players.push(joinerPlayer);
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ code: room.code, players: room.players, player: joinerPlayer }));
+    res.end(JSON.stringify({ code: room.code, players: room.players, player: joinerPlayer, mode: room.mode || 'classic' }));
+    return;
+  }
+
+  if (pathname === '/api/rooms/update-mode' && req.method === 'POST') {
+    const body = await getJsonBody();
+    const code = (body.code || '').toUpperCase().trim();
+    const room = activeRooms.get(code);
+
+    if (room) {
+      if (body.mode) room.mode = body.mode;
+      if (body.isPrivate !== undefined) room.isPrivate = body.isPrivate;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, mode: room.mode, isPrivate: room.isPrivate }));
+      return;
+    }
+
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Raum nicht gefunden' }));
     return;
   }
 
@@ -110,7 +130,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ code: room.code, players: room.players, started: room.started }));
+    res.end(JSON.stringify({ code: room.code, players: room.players, started: room.started, mode: room.mode || 'classic', isPrivate: room.isPrivate }));
     return;
   }
 
@@ -121,8 +141,49 @@ const server = http.createServer(async (req, res) => {
 
     if (room) {
       room.started = true;
+      if (body.mode) room.mode = body.mode;
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true }));
+      return;
+    }
+    res.writeHead(404);
+    res.end();
+    return;
+  }
+
+  if (pathname === '/api/rooms/add-ai' && req.method === 'POST') {
+    const body = await getJsonBody();
+    const code = (body.code || '').toUpperCase().trim();
+    const room = activeRooms.get(code);
+
+    if (room) {
+      const aiPlayer = {
+        id: 'ai-' + Math.random().toString(36).substr(2, 6),
+        name: body.name || 'Hitster Bot',
+        isHost: false,
+        isAI: true,
+        aiDifficulty: body.difficulty || 'medium',
+        aiIcon: '🤖'
+      };
+      room.players.push(aiPlayer);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ players: room.players }));
+      return;
+    }
+    res.writeHead(404);
+    res.end();
+    return;
+  }
+
+  if (pathname === '/api/rooms/remove-ai' && req.method === 'POST') {
+    const body = await getJsonBody();
+    const code = (body.code || '').toUpperCase().trim();
+    const room = activeRooms.get(code);
+
+    if (room) {
+      room.players = room.players.filter(p => p.id !== body.aiId);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ players: room.players }));
       return;
     }
     res.writeHead(404);
@@ -158,79 +219,63 @@ const server = http.createServer(async (req, res) => {
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
       const chunksize = (end - start) + 1;
       const file = fs.createReadStream(absolutePath, { start, end });
-
-      res.writeHead(206, {
+      const head = {
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': chunksize,
         'Content-Type': 'audio/mpeg',
-      });
+      };
+
+      res.writeHead(206, head);
       file.pipe(res);
     } else {
-      res.writeHead(200, {
+      const head = {
         'Content-Length': fileSize,
         'Content-Type': 'audio/mpeg',
-        'Accept-Ranges': 'bytes'
-      });
+      };
+      res.writeHead(200, head);
       fs.createReadStream(absolutePath).pipe(res);
     }
     return;
   }
 
   // -------------------------------------------------------------
-  // YTMUSIC AUDIO STREAM PROXY
+  // STATIC FILE SERVER FOR PRODUCTION BUILD (dist/)
   // -------------------------------------------------------------
-  if (pathname === '/api/ytmusic/stream') {
-    const query = reqUrl.searchParams.get('q');
-    if (!query) {
-      res.writeHead(400, { 'Content-Type': 'text/plain' });
-      res.end('Missing query parameter');
-      return;
-    }
+  let filePath = path.join(__dirname, 'dist', pathname === '/' ? 'index.html' : pathname);
 
-    try {
-      const streamUrl = await resolveYTMusicAudioUrl(query);
-      if (streamUrl) {
-        proxyAudioStream(streamUrl, req, res);
-        return;
-      }
-    } catch (err) {
-      console.error("ytmusic stream resolution error:", err);
-    }
-
-    try {
-      const fallbackUrl = await resolveITunesAudioUrl(query);
-      if (fallbackUrl) {
-        proxyAudioStream(fallbackUrl, req, res);
-        return;
-      }
-    } catch (e) {
-      console.error("iTunes fallback error:", e);
-    }
-
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Failed to resolve audio stream');
-    return;
+  // Fallback to root index.html if dist doesn't exist yet
+  if (!fs.existsSync(path.join(__dirname, 'dist'))) {
+    filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
   }
 
-  // -------------------------------------------------------------
-  // STATIC FILE SERVER
-  // -------------------------------------------------------------
-  let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : decodeURIComponent(pathname));
-  
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, 'index.html');
-  }
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const contentType = MIME_TYPES[extname] || 'application/octet-stream';
 
-  const ext = path.extname(filePath).toLowerCase();
-  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        // SPA Fallback for client-side routing
+        const indexPath = fs.existsSync(path.join(__dirname, 'dist'))
+          ? path.join(__dirname, 'dist', 'index.html')
+          : path.join(__dirname, 'index.html');
 
-  fs.readFile(filePath, (err, content) => {
-    if (err) {
-      res.writeHead(500);
-      res.end(`Server Error: ${err.code}`);
+        fs.readFile(indexPath, (err, indexContent) => {
+          if (err) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('404 Not Found');
+          } else {
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
+            res.end(indexContent, 'utf-8');
+          }
+        });
+      } else {
+        res.writeHead(500);
+        res.end(`Server Error: ${error.code}`);
+      }
     } else {
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(content, 'utf-8');
@@ -238,101 +283,6 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-// Stream proxy supporting HTTP & HTTPS redirects
-function proxyAudioStream(streamUrl, clientReq, clientRes) {
-  const lib = streamUrl.startsWith('https') ? https : http;
-  
-  const req = lib.get(streamUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': '*/*'
-    }
-  }, (targetRes) => {
-    if (targetRes.statusCode >= 300 && targetRes.statusCode < 400 && targetRes.headers.location) {
-      proxyAudioStream(targetRes.headers.location, clientReq, clientRes);
-      return;
-    }
-
-    clientRes.writeHead(targetRes.statusCode || 200, {
-      'Content-Type': targetRes.headers['content-type'] || 'audio/mpeg',
-      'Content-Length': targetRes.headers['content-length'] || '',
-      'Accept-Ranges': 'bytes'
-    });
-
-    targetRes.pipe(clientRes);
-  });
-
-  req.on('error', (err) => {
-    console.error("Proxy request error:", err);
-    if (!clientRes.headersSent) {
-      clientRes.writeHead(502);
-      clientRes.end("Stream Proxy Error");
-    }
-  });
-}
-
-// Helper: YouTube Music audio stream resolver
-async function resolveYTMusicAudioUrl(query) {
-  const mirrors = [
-    'https://pipedapi.kavin.rocks',
-    'https://api.piped.video',
-    'https://pipedapi.privacy.com.de',
-    'https://inv.tux.pizza',
-    'https://invidious.nerdvpn.de'
-  ];
-
-  for (const mirror of mirrors) {
-    try {
-      const searchRes = await fetch(`${mirror}/search?q=${encodeURIComponent(query)}&filter=music_songs`, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(3500)
-      });
-      if (searchRes.ok) {
-        const searchData = await searchRes.json();
-        const items = searchData.items || searchData;
-        if (items && items.length > 0) {
-          const videoId = items[0].url ? items[0].url.replace('/watch?v=', '') : (items[0].videoId || items[0].id);
-          if (videoId) {
-            const streamRes = await fetch(`${mirror}/streams/${videoId}`, {
-              headers: { 'User-Agent': 'Mozilla/5.0' },
-              signal: AbortSignal.timeout(3500)
-            });
-            if (streamRes.ok) {
-              const streamData = await streamRes.json();
-              const audioStreams = streamData.audioStreams;
-              if (audioStreams && audioStreams.length > 0) {
-                audioStreams.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-                return audioStreams[0].url;
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      // try next mirror
-    }
-  }
-  return null;
-}
-
-// Helper: iTunes search fallback
-async function resolveITunesAudioUrl(query) {
-  try {
-    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`, {
-      signal: AbortSignal.timeout(3500)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.results && data.results.length > 0 && data.results[0].previewUrl) {
-        return data.results[0].previewUrl;
-      }
-    }
-  } catch (e) {
-    console.warn("iTunes search error", e);
-  }
-  return null;
-}
-
 server.listen(PORT, () => {
-  console.log(`Hitster YTMusic & Room Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Hitster Server running at http://localhost:${PORT}`);
 });
